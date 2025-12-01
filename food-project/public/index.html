@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Food Delivery - Home</title>
+</head>
+<body>
+  <h1>Food Delivery System</h1>
+  <p><a href="register.html">New user? Register here</a></p>
+  <a href="orderhistory.html" class="btn">My Order History</a>
+
+  <h2>Available Food Items</h2>
+  <div id="food-list">
+    Loading food items...
+  </div>
+
+  <h2>Menu</h2>
+<button onclick="window.location.href='admin.html'">Manage Menu</button>
+<button onclick="window.location.href='orders.html'">View Orders</button>
+<hr>
+
+  <h2>Place Order</h2>
+  <p>UserId (register page se):</p>
+  <input type="text" id="userId" placeholder="User ID" /><br /><br />
+
+  <p>Food Item Id (list me upar dikh raha hai):</p>
+  <input type="text" id="foodItemId" placeholder="Food Item ID" /><br /><br />
+
+  <p>Quantity:</p>
+  <input type="number" id="quantity" value="1" min="1" /><br /><br />
+
+  <button id="orderBtn">Place Order</button>
+
+  <p id="orderMsg"></p>
+
+ <script>
+    async function loadFood() {
+        try {
+            const res = await fetch("http://localhost:5000/foods");
+            const data = await res.json();
+
+            const list = document.getElementById("food-list");
+            list.innerHTML = "";
+
+            data.forEach((food) => {
+                const div = document.createElement("div");
+                div.style.border = "1px solid black";
+                div.style.padding = "10px";
+                div.style.margin = "10px 0";
+
+                div.innerHTML = `
+                    <b>${food.name}</b><br>
+                    Price: Rs. ${food.price}<br>
+                    Desc: ${food.description}<br>
+                    <span style="color: blue;">Food Item ID: ${food._id}</span>
+                `;
+
+                list.appendChild(div);
+            });
+        } catch (err) {
+            console.error(err);
+            document.getElementById("food-list").innerText =
+                "Error loading foods.";
+        }
+    }
+
+    loadFood();
+
+    // ORDER BUTTON CLICK
+    document.getElementById("orderBtn").addEventListener("click", async () => {
+        try {
+            const userId = document.getElementById("userId").value.trim();
+            const foodItemId = document.getElementById("foodItemId").value.trim();
+            const quantity = parseInt(document.getElementById("quantity").value);
+
+            const msg = document.getElementById("orderMsg");
+
+            if (!userId || !foodItemId || !quantity) {
+                msg.innerText = "Please fill all the fields";
+                return;
+            }
+
+            const res = await fetch("http://localhost:5000/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, foodItemId, quantity }),
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                msg.innerText =
+                    "Order placed! OrderId: " +
+                    result.orderId +
+                    " | Total Rs." +
+                    result.totalAmount;
+            } else {
+                msg.innerText = result.message || "Order failed.";
+            }
+        } catch (err) {
+            console.error(err);
+            document.getElementById("orderMsg").innerText = "Network Error.";
+        }
+    });
+</script>
+</body>
+</html>

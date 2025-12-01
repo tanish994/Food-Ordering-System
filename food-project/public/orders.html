@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All Orders</title>
+</head>
+<body>
+  <h1>All Orders</h1>
+  <a href="index.html">Back to Home</a><br><br>
+
+  <div id="orders">Loading...</div>
+
+  <script>
+    async function loadOrders() {
+      try {
+        const res = await fetch("/orders");
+        const data = await res.json();
+
+        const div = document.getElementById("orders");
+        div.innerHTML = "";
+
+        data.forEach((order) => {
+          const box = document.createElement("div");
+          box.style.border = "1px solid black";
+          box.style.padding = "10px";
+          box.style.margin = "10px 0";
+
+          box.innerHTML = `
+            <b>Food:</b> ${order.foodName}<br>
+            <b>Quantity:</b> ${order.quantity}<br>
+            <b>Total:</b> Rs.${order.totalAmount}<br>
+            <b>Status:</b> 
+              <span style="color:${
+                order.status === "Delivered" ? "green" : "orange"
+              }">
+                ${order.status}
+              </span><br>
+            <b>Order ID:</b> ${order._id} <br><br>
+
+            <button onclick="deleteOrder('${order._id}')"
+              style="background:red;color:white;padding:6px;border:none;">
+              Delete Order
+            </button>
+          `;
+
+          div.appendChild(box);
+        });
+      } catch (err) {
+        document.getElementById("orders").innerHTML =
+          "Error loading orders.";
+      }
+    }
+
+    async function deleteOrder(id) {
+      if (!confirm("Are you sure you want to delete this order?")) return;
+
+      const res = await fetch(`/orders/${id}`, { method: "DELETE" });
+      const msg = await res.json();
+      alert(msg.message);
+      loadOrders(); // refresh list
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Menu Control</title>
+</head>
+<body>
+
+  <h1>Menu Control</h1>
+  <a href="index.html">Back to Home</a>
+
+  <h2>Add New Food</h2>
+  <input id="fname" placeholder="Food Name"> <br><br>
+  <input id="fprice" placeholder="Price"> <br><br>
+  <input id="fdesc" placeholder="Description"> <br><br>
+  <button onclick="addFood()">Add Food</button>
+
+  <p id="addMsg"></p>
+
+  <hr>
+
+  <h2>All Food Items</h2>
+  <div id="foodList">Loading...</div>
+
+  <script>
+    async function loadFood() {
+      const res = await fetch("/foods");
+      const data = await res.json();
+
+      const div = document.getElementById("foodList");
+      div.innerHTML = "";
+
+      data.forEach(item => {
+        div.innerHTML += `
+          <p>
+            <b>${item.name}</b> (₹${item.price}) <br>
+            ${item.description} <br>
+            ID: ${item._id} <br>
+
+            <button onclick="deleteFood('${item._id}')">Delete</button>
+            <button onclick="editFood('${item._id}')">Edit</button>
+
+            <br><br>
+          </p>
+        `;
+      });
+    }
+
+    loadFood();
+
+    async function addFood() {
+      const name = document.getElementById("fname").value;
+      const price = document.getElementById("fprice").value;
+      const description = document.getElementById("fdesc").value;
+
+      const res = await fetch("/add-food", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name, price, description})
+      });
+
+      const data = await res.json();
+      document.getElementById("addMsg").innerText = data.message;
+
+      loadFood();
+    }
+
+    async function deleteFood(id) {
+      await fetch("/foods/" + id, { method: "DELETE" });
+      loadFood();
+    }
+
+    async function editFood(id) {
+      const newName = prompt("New name:");
+      const newPrice = prompt("New price:");
+      const newDesc = prompt("New description:");
+
+      await fetch("/foods/" + id, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ name: newName, price: newPrice, description: newDesc })
+      });
+
+      loadFood();
+    }
+  </script>
+
+</body>
+</html>

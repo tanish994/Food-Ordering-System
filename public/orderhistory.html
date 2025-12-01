@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Orders</title>
+    <style>
+        .order-card {
+            border: 1px solid #ccc;
+            padding: 12px;
+            margin: 10px;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+<h1>My Order History</h1>
+<a href="index.html">⬅ Back</a>
+<hr>
+
+<div id="orders">Loading your orders...</div>
+
+<script>
+    async function loadOrderHistory() {
+        const userId = localStorage.getItem("userId");
+
+        if (!userId) {
+            document.getElementById("orders").innerHTML =
+                "<b>User not logged in!</b>";
+            return;
+        }
+
+        const res = await fetch(`/orders/user/${userId}`);
+        const data = await res.json();
+
+        const container = document.getElementById("orders");
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+            container.innerHTML = "<p>No orders found.</p>";
+            return;
+        }
+
+        data.forEach(o => {
+            container.innerHTML += `
+                <div class="order-card">
+                    <b>Food:</b> ${o.foodName} <br>
+                    <b>Quantity:</b> ${o.quantity} <br>
+                    <b>Amount:</b> ₹${o.totalAmount} <br>
+                    <b>Status:</b> <span style="color:${o.status === 'Delivered' ? 'green' : 'orange'};">
+                        ${o.status}
+                    </span> <br>
+                    <b>Date:</b> ${new Date(o.createdAt).toLocaleString()}
+                </div>
+            `;
+        });
+    }
+
+    loadOrderHistory();
+</script>
+
+</body>
+</html>
